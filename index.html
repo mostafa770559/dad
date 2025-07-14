@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>عيد ميلاد سعيد يا احلى أب</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Tajawal', sans-serif;
+      background: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+      flex-direction: column;
+    }
+
+    canvas#fireworks {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .book-container {
+      width: 600px;
+      height: 400px;
+      perspective: 1200px;
+      cursor: pointer;
+      z-index: 2;
+      position: relative;
+    }
+
+    .book {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 1s;
+    }
+
+    .book.flipped {
+      transform: rotateY(-180deg);
+    }
+
+    .page {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      backface-visibility: hidden;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .front {
+      background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+    }
+
+    .back {
+      background: radial-gradient(circle at top left, #fdf6e3, #fcefe3);
+      transform: rotateY(180deg);
+      text-align: right;
+      line-height: 1.8;
+      color: #4e342e;
+      border: 3px solid #d7ccc8;
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.05);
+      padding: 30px;
+      position: relative;
+    }
+
+    .fa-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+      color: #d35400;
+    }
+
+    .icon-group {
+      margin-top: 15px;
+      font-size: 22px;
+      color: #e17055;
+    }
+
+    .icon-group i {
+      margin: 0 8px;
+    }
+
+    .back > div.decor-frame {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      border: 2px dashed #d7ccc8;
+      border-radius: 15px;
+      pointer-events: none;
+    }
+
+    #download-btn {
+      margin-top: 15px;
+      padding: 12px 30px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #fff;
+      background: #d35400;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(211, 84, 0, 0.5);
+      user-select: none;
+      z-index: 9999;
+      transition: background-color 0.3s ease;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="fireworks"></canvas>
+
+  <div class="book-container" id="card" onclick="flipBook()">
+    <div class="book" id="book">
+      <div class="page front">
+        <i class="fa-solid fa-gift fa-icon"></i>
+        <h1>اضغط هنا لفتح الهدية</h1>
+        <p>افتح الكتاب وشوف الرسالة</p>
+      </div>
+      <div class="page back">
+        <i class="fa-solid fa-cake-candles fa-icon"></i>
+        <h1 id="greeting-title">كل سنة وانت طيب يا بابا</h1>
+        <p id="greeting-message">
+          في يوم ميلادك، أحب أقولك من قلبي...<br />
+          شكراً على كل لحظة حب واهتمام واحتواء<br />
+          أنت البطل الحقيقي في حياتي، ومعاك دايمًا أحس بالأمان
+        </p>
+        <p style="margin-top: 20px; font-weight: bold">ابنك المحب: مصطفى</p>
+        <div class="icon-group"></div>
+        <div class="decor-frame"></div>
+      </div>
+    </div>
+  </div>
+
+  <button id="download-btn" onclick="downloadFullScreen()">تحميل الكرت</button>
+
+  <script>
+    const titles = [
+      "كل سنة وانت طيب يا بابا",
+      "عيد ميلاد سعيد يا بابا الغالي",
+      "أحبك يا بابا من كل قلبي",
+      "بابا، أنت الأفضل في حياتي",
+      "شكراً يا بابا على كل شيء",
+      "بابا العزيز، كل عام وانت بخير",
+      "بابا، انت نجم حياتي",
+      "أجمل تهنئة لي بابا الغالي",
+      "بابا، وجودك يجعل حياتي أجمل",
+      "بابا، أحبك بلا حدود"
+    ];
+
+    const messages = [
+      `في يوم ميلادك يا بابا، أحب أقولك من قلبي...<br>شكراً على كل لحظة حب واهتمام واحتواء<br>أنت البطل الحقيقي في حياتي، ومعاك دايمًا أحس بالأمان`,
+      `بابا الغالي، كل سنة وانت نور عيوني<br>وجودك في حياتي هو أجمل هدية<br>ربنا يخليك لي دايمًا`,
+      `في يومك يا بابا، أحب أقولك إنك أغلى ما عندي<br>محبتك ودعمك هو سر قوتي<br>كل سنة وانت بخير`,
+      `كل سنة وانت بخير يا بابا العزيز<br>رعايتك وحبك هو سندي في الحياة<br>أتمنى لك أيام مليانة سعادة وراحة`,
+      `بابا، أنت الصديق والقدوة<br>أتمنى لك عيد ميلاد مليء بالفرح والنجاح`,
+      `في عيد ميلادك يا بابا، أتمنى لك الصحة والسعادة<br>أنت دائماً في قلبي وذاكرتي`,
+      `بابا الغالي، كل لحظة معاك هدية لا تقدر بثمن<br>أحبك وأتمنى لك حياة مليئة بالحب`,
+      `في يوم مميز زي ده، بابا، أتمنى لك كل الخير<br>شكراً على وجودك في حياتي`,
+      `بابا، أنت رمز القوة والمحبة<br>أتمنى لك عمر طويل وسعيد`,
+      `بابا العزيز، كل عام وانت بألف خير<br>محبتي لك لا توصف بالكلام`
+    ];
+
+    function flipBook() {
+      const book = document.getElementById('book');
+      const btn = document.getElementById('download-btn');
+      const isFlipped = book.classList.contains('flipped');
+
+      if (!isFlipped) {
+        const i = Math.floor(Math.random() * titles.length);
+        document.getElementById('greeting-title').innerHTML = titles[i];
+        document.getElementById('greeting-message').innerHTML = messages[i];
+        btn.style.display = 'block';
+      } else {
+        btn.style.display = 'none';
+      }
+
+      book.classList.toggle('flipped');
+    }
+
+    function downloadFullScreen() {
+      const btn = document.getElementById('download-btn');
+      btn.style.display = 'none';
+
+      const titleText = document.getElementById('greeting-title').innerText || "صورة_عيد_ميلاد";
+      const fileName = titleText.replace(/\s+/g, '_') + '.png';
+
+      html2canvas(document.body).then(canvas => {
+        btn.style.display = 'block';
+        canvas.toBlob(blob => {
+          const link = document.createElement('a');
+          link.download = fileName;
+          link.href = URL.createObjectURL(blob);
+          link.click();
+          URL.revokeObjectURL(link.href);
+        });
+      });
+    }
+
+    // Fireworks
+    const canvas = document.getElementById('fireworks');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let fireworks = [];
+
+    class Firework {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = canvas.height;
+        this.targetY = Math.random() * (canvas.height / 2);
+        this.color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+        this.dy = -7 - Math.random() * 3;
+        this.exploded = false;
+        this.particles = [];
+      }
+
+      update() {
+        if (!this.exploded) {
+          this.y += this.dy;
+          if (this.y <= this.targetY) {
+            this.exploded = true;
+            for (let i = 0; i < 40; i++) {
+              this.particles.push(new Particle(this.x, this.y, this.color));
+            }
+          }
+        } else {
+          this.particles.forEach(p => p.update());
+          this.particles = this.particles.filter(p => p.alpha > 0);
+        }
+      }
+
+      draw() {
+        if (!this.exploded) {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+          ctx.fillStyle = this.color;
+          ctx.fill();
+        } else {
+          this.particles.forEach(p => p.draw());
+        }
+      }
+    }
+
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.radius = 2 + Math.random() * 2;
+        this.dx = (Math.random() - 0.5) * 10;
+        this.dy = (Math.random() - 0.5) * 10;
+        this.alpha = 1;
+      }
+
+      update() {
+        this.x += this.dx;
+        this.y += this.dy;
+        this.alpha -= 0.02;
+      }
+
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function animateFireworks() {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      if (Math.random() < 0.05) {
+        fireworks.push(new Firework());
+      }
+
+      fireworks.forEach(fw => {
+        fw.update();
+        fw.draw();
+      });
+
+      fireworks = fireworks.filter(fw => !fw.exploded || fw.particles.length > 0);
+      requestAnimationFrame(animateFireworks);
+    }
+
+    animateFireworks();
+  </script>
+</body>
+</html>
